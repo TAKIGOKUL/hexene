@@ -746,4 +746,94 @@
         function updateNavigation() {
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
-            const
+            const submitBtn = document.getElementById('submitBtn');
+            const stepCounter = document.getElementById('stepCounter');
+            
+            // Update step counter
+            stepCounter.textContent = `${currentStep} / ${totalSteps}`;
+            document.getElementById('stepIndicator').textContent = `Step ${currentStep} of ${totalSteps}`;
+            
+            // Update buttons
+            prevBtn.disabled = currentStep === 1;
+            
+            if (currentStep === totalSteps) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // Auto-calculate total emissions
+        function calculateTotalEmissions() {
+            const co2 = parseFloat(document.getElementById('co2Emissions').value) || 0;
+            const ch4 = parseFloat(document.getElementById('ch4Emissions').value) || 0;
+            const n2o = parseFloat(document.getElementById('n2oEmissions').value) || 0;
+            
+            const total = co2 + ch4 + n2o;
+            document.getElementById('totalEmissions').value = total.toFixed(2);
+        }
+
+        // Add event listeners for emission calculations
+        document.getElementById('co2Emissions').addEventListener('input', calculateTotalEmissions);
+        document.getElementById('ch4Emissions').addEventListener('input', calculateTotalEmissions);
+        document.getElementById('n2oEmissions').addEventListener('input', calculateTotalEmissions);
+
+        // Handle form submission
+        document.getElementById('carbonForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateStep(currentStep)) {
+                return;
+            }
+            
+            // Collect all form data
+            const formData = new FormData(this);
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    // Handle multiple values (checkboxes)
+                    if (Array.isArray(data[key])) {
+                        data[key].push(value);
+                    } else {
+                        data[key] = [data[key], value];
+                    }
+                } else {
+                    data[key] = value;
+                }
+            }
+            
+            // Here you would normally send the data to your backend
+            console.log('Form Data:', data);
+            alert('Form submitted successfully! (In production, this would be sent to your server)');
+        });
+
+        // Handle file uploads
+        document.getElementById('documents').addEventListener('change', function(e) {
+            const files = e.target.files;
+            const uploadArea = document.querySelector('.upload-area');
+            
+            if (files.length > 0) {
+                let fileList = '';
+                for (let file of files) {
+                    fileList += `<div>📄 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</div>`;
+                }
+                uploadArea.innerHTML = `
+                    <div class="upload-icon">✅</div>
+                    <p><strong>${files.length} file(s) selected</strong></p>
+                    ${fileList}
+                    <p class="help-text">Click to change files</p>
+                `;
+            }
+        });
+
+        // Initialize the form
+        updateNavigation();
+        updateProgress();
